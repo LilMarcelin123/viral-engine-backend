@@ -4,12 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Devuelve el mensaje real SOLO para errores de negocio (ResponseStatusException,
@@ -28,6 +31,34 @@ public class ApiExceptionHandler {
             "timestamp", Instant.now().toString(),
             "status", e.getStatusCode().value(),
             "message", e.getReason() == null ? "Solicitud inválida" : e.getReason()
+        ));
+    }
+
+    /**
+     * Errores de validación de @Valid: sí decimos qué campo falló. No filtra nada
+     * interno (son nombres de campos del propio contrato de la API) y sin esto el
+     * usuario solo vería "error inesperado" al equivocarse en un formulario.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> validacion(MethodArgumentNotValidException e) {
+        String detalle = e.getBindingResult().getFieldErrors().stream()
+            .map(f -> f.getField() + ": " + f.getDefaultMessage())
+            .collect(Collectors.joining("; "));
+        return ResponseEntity.badRequest().body(Map.of(
+            "timestamp", Instant.now().toString(),
+            "status", 400,
+            "message", detalle.isBlank() ? "Datos inválidos" : detalle
+        ));
+    }
+
+    /** JSON malformado o un tipo que no se puede convertir (por ejemplo una fecha inválida). */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> ilegible(HttpMessageNotReadableException e) {
+        log.warn("Cuerpo de la petición ilegible: {}", e.getMostSpecificCause().getMessage());
+        return ResponseEntity.badRequest().body(Map.of(
+            "timestamp", Instant.now().toString(),
+            "status", 400,
+            "message", "Los datos enviados no tienen el formato esperado."
         ));
     }
 

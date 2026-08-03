@@ -1,5 +1,6 @@
 package mx.dancreative.viralengine.campaign;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import mx.dancreative.viralengine.security.CurrentUser;
 import mx.dancreative.viralengine.wallet.WalletService;
@@ -36,7 +37,7 @@ public class CampaignController {
 
     @PostMapping
     @Transactional
-    public Map<String, Object> crear(@RequestBody CreateRequest req) {
+    public Map<String, Object> crear(@Valid @RequestBody CreateRequest req) {
         try {
             Long id = jdbc.execute((java.sql.Connection con) -> {
                 try (var cs = con.prepareCall("{CALL sp_campaign_crear(?,?,?,?,?,?,?,?,?,?,?,?,?,?)}")) {

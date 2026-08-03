@@ -1,5 +1,6 @@
 package mx.dancreative.viralengine.wallet;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +31,7 @@ public class WalletController {
     }
 
     @PostMapping("/deposits")
-    public Map<String, Object> depositar(@RequestBody DepositRequest req) {
+    public Map<String, Object> depositar(@Valid @RequestBody DepositRequest req) {
         Long uid = (Long) SecurityContextHolder.getContext().getAuthentication().getDetails();
         service.depositar(req.monto(), uid, req.nota());
         return service.resumen();
