@@ -1,0 +1,11 @@
+target/
+uploads/
+*.env
+.env*
+application-local.yml
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
