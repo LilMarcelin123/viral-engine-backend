@@ -63,6 +63,24 @@ public class UserController {
                     CurrentUser.id(), "Usuario " + id + " actualizado");
     }
 
+    /**
+     * Strikes de un editor, con id para poder quitarlos. Sin esto la interfaz
+     * solo veía el CONTEO y no había forma de revertir una remoción: al tercer
+     * strike el editor quedaba bloqueado para siempre.
+     */
+    @GetMapping("/users/{id}/strikes")
+    public List<Map<String, Object>> strikesDe(@PathVariable long id) {
+        return jdbc.queryForList("""
+            SELECT s.id, s.motivo, s.activo, s.created_at, s.clip_id,
+                   s.motivo_remocion, s.removido_at,
+                   cam.nombre AS campana, c.titulo AS clip
+              FROM strike s
+              LEFT JOIN campaign cam ON cam.id = s.campaign_id
+              LEFT JOIN clip c       ON c.id = s.clip_id
+             WHERE s.user_id = ?
+             ORDER BY s.activo DESC, s.created_at DESC""", id);
+    }
+
     /** Asigna o desasigna una campaña a un cliente (chips de la ficha). */
     @PutMapping("/users/{id}/campaigns/{campaignId}")
     public void asignarCampania(@PathVariable long id, @PathVariable long campaignId,

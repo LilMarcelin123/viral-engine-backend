@@ -54,9 +54,15 @@ public class AuthController {
         }
 
         if (!"ACTIVO".equals(u.getUserState().getCodigo())) {
-            registrar(u.getId(), "LOGIN_BLOQUEADO", "Cuenta " + u.getUserState().getCodigo());
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                "Tu cuenta está " + u.getUserState().getCodigo().toLowerCase() + ".");
+            String estado = u.getUserState().getCodigo();
+            registrar(u.getId(), "LOGIN_BLOQUEADO", "Cuenta " + estado);
+            String mensaje = switch (estado) {
+                case "REMOVIDO"   -> "Tu cuenta fue removida por acumular strikes. "
+                                   + "Contacta al administrador si crees que fue un error.";
+                case "SUSPENDIDO" -> "Tu cuenta está suspendida. Contacta al administrador.";
+                default           -> "Tu cuenta no está activa. Contacta al administrador.";
+            };
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, mensaje);
         }
 
         limiter.limpiar(clave);
