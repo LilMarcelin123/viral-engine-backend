@@ -167,19 +167,15 @@ public class UserController {
                    q.codigo AS estado, c.excluido_bonos, c.fecha_publicado,
                    c.created_at, c.created_at AS created_date,
                    COALESCE(m.vistas_totales,0) AS vistas_totales,
-                   COALESCE(m.likes_totales,0)  AS likes_totales
+                   COALESCE(m.likes_totales,0)  AS likes_totales,
+                   pb.publicaciones
               FROM clip c
               JOIN cat_qa_state q ON q.id = c.qa_state_id
               LEFT JOIN v_clip_metrics m ON m.clip_id = c.id
+              LEFT JOIN v_clip_publicaciones pb ON pb.clip_id = c.id
              ORDER BY c.created_at DESC""");
-
-        for (Map<String, Object> c : rows) {
-            c.put("publications", jdbc.queryForList("""
-                SELECT p.codigo AS platform, cp.link, cp.vistas, cp.likes
-                  FROM clip_publication cp
-                  JOIN cat_platform p ON p.id = cp.platform_id
-                 WHERE cp.clip_id = ?""", c.get("id")));
-        }
+        // Antes se hacía una consulta por clip (N+1) y devolvía la columna como
+        // `link`, que no es el nombre que la interfaz lee. Ahora sale de la vista.
         return rows;
     }
     

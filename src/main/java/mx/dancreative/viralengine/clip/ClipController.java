@@ -115,13 +115,15 @@ public class ClipController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<Map<String, Object>> cola() {
         return jdbc.queryForList("""
-            SELECT c.id, c.campaign_id, cam.nombre AS campana, u.nombre AS editor,
-                   c.titulo, q.codigo AS estado, c.created_at,
+            SELECT c.id, c.campaign_id, c.editor_id, cam.nombre AS campana, u.nombre AS editor,
+                   c.titulo, q.codigo AS estado, c.created_at, c.motivo, c.excluido_bonos,
+                   pb.publicaciones,
                    (SELECT COUNT(*) FROM strike s WHERE s.user_id = c.editor_id AND s.activo = TRUE) AS strikes_editor
               FROM clip c
               JOIN campaign cam   ON cam.id = c.campaign_id
               JOIN users u        ON u.id = c.editor_id
               JOIN cat_qa_state q ON q.id = c.qa_state_id
+              LEFT JOIN v_clip_publicaciones pb ON pb.clip_id = c.id
              WHERE q.codigo IN ('SUBIDO','EN_REVISION')
              ORDER BY c.created_at""");
     }

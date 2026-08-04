@@ -29,10 +29,12 @@ public class MeController {
     public List<Map<String, Object>> clips(@RequestParam(required = false) Long campaign) {
         return jdbc.queryForList("""
             SELECT c.id, c.campaign_id, c.titulo, q.codigo AS estado, c.motivo,
-                   c.excluido_bonos, m.vistas_totales, m.likes_totales, c.fecha_congelado
+                   c.excluido_bonos, m.vistas_totales, m.likes_totales, c.fecha_congelado,
+                   pb.publicaciones
               FROM clip c
               JOIN cat_qa_state q ON q.id = c.qa_state_id
               LEFT JOIN v_clip_metrics m ON m.clip_id = c.id
+              LEFT JOIN v_clip_publicaciones pb ON pb.clip_id = c.id
              WHERE c.editor_id = ? AND (? IS NULL OR c.campaign_id = ?)
              ORDER BY c.created_at DESC""", CurrentUser.id(), campaign, campaign);
     }
