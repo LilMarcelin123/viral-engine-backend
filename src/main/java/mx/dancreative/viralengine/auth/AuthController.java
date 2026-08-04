@@ -21,7 +21,8 @@ public class AuthController {
 
     public record LoginRequest(@Email @NotBlank String email, @NotBlank String password) {}
     public record LoginResponse(String token, Long id, String nombre, String role) {}
-    public record MeResponse(Long id, String nombre, String email, String role, String correoPaypal) {}
+    public record MeResponse(Long id, String nombre, String email, String role,
+                             String correoPaypal, String telefono) {}
 
     private final UserRepository users;
     private final PasswordEncoder encoder;
@@ -68,7 +69,7 @@ public class AuthController {
         User u = users.findByEmail(principal.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sesión inválida"));
         return new MeResponse(u.getId(), u.getNombre(), u.getEmail(),
-                u.getUserType().getCodigo(), u.getCorreoPaypal());
+                u.getUserType().getCodigo(), u.getCorreoPaypal(), u.getTelefono());
     }
 
     private String ip(HttpServletRequest req) {

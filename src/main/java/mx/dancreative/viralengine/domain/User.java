@@ -39,8 +39,10 @@ public class User {
     public CatUserType getUserType() { return userType; }
     public CatUserState getUserState() { return userState; }
     public String getCorreoPaypal() { return correoPaypal; }
+    public String getTelefono() { return telefono; }
 
     public void setNombre(String v) { this.nombre = v; }
+    public void setTelefono(String v) { this.telefono = v; }
     public void setEmail(String v) { this.email = v; }
     public void setPasswordHash(String v) { this.passwordHash = v; }
     public void setUserType(CatUserType v) { this.userType = v; }

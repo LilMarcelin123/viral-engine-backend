@@ -59,10 +59,24 @@ public class MeController {
              WHERE s.user_id = ? ORDER BY s.created_at DESC""", CurrentUser.id());
     }
 
-    /** Captura de su correo PayPal (medio de pago para dispersión manual). */
-    @PutMapping("/paypal")
-    public void paypal(@RequestBody Map<String, String> body) {
-        jdbc.update("UPDATE users SET correo_paypal = ? WHERE id = ?",
-            body.get("correoPaypal"), CurrentUser.id());
+    /**
+     * Datos propios del usuario: nombre, teléfono y correo PayPal (medio de pago
+     * para la dispersión manual). Solo se actualiza lo que venga en el cuerpo,
+     * así que mandar un campo suelto no borra los demás.
+     */
+    // Anula el hasRole('EDITOR') de la clase: cualquiera edita SUS propios datos
+    // (la pantalla de Ajustes la usan admin, editor y cliente por igual).
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping({"/paypal", "/perfil"})
+    public void perfil(@RequestBody Map<String, String> body) {
+        if (body.containsKey("nombre"))
+            jdbc.update("UPDATE users SET nombre = ? WHERE id = ?",
+                body.get("nombre"), CurrentUser.id());
+        if (body.containsKey("telefono"))
+            jdbc.update("UPDATE users SET telefono = ? WHERE id = ?",
+                body.get("telefono"), CurrentUser.id());
+        if (body.containsKey("correoPaypal"))
+            jdbc.update("UPDATE users SET correo_paypal = ? WHERE id = ?",
+                body.get("correoPaypal"), CurrentUser.id());
     }
 }

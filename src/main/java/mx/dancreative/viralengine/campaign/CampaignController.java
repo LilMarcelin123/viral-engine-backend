@@ -95,9 +95,11 @@ public class CampaignController {
     /** Edición de campañas ya creadas (cambios finales del cliente). */
     @PatchMapping("/{id}")
     public void editar(@PathVariable long id, @RequestBody Map<String, Object> campos) {
+        // Lista blanca: el nombre de columna se concatena, así que NADA fuera de aquí
+        // puede llegar al SQL. client_id permite reasignar la campaña a otro cliente.
         var permitidos = List.of("nombre","artista_cancion","url_audio","fecha_inicio","fecha_cierre",
                                  "imagen_url","titulo","descripcion","pautas_contenido",
-                                 "num_videos","presupuesto");
+                                 "num_videos","presupuesto","client_id");
         campos.forEach((k, v) -> {
             if (permitidos.contains(k))
                 jdbc.update("UPDATE campaign SET " + k + " = ? WHERE id = ?", v, id);
