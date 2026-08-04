@@ -49,6 +49,10 @@ app:
   login:
     max-intentos: ${LOGIN_MAX_INTENTOS:5}
     ventana-minutos: ${LOGIN_VENTANA_MIN:5}
+  apify:
+    # Vacío por defecto: sin token el scrapeo responde 503 en vez de tumbar la
+    # aplicación. El resto del sistema funciona sin él.
+    token: ${APIFY_TOKEN:}
 
 server:
   port: ${PORT:8080}
