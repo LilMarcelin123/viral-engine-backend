@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,6 +50,28 @@ public class ApiExceptionHandler {
             "timestamp", Instant.now().toString(),
             "status", 400,
             "message", detalle.isBlank() ? "Datos inválidos" : detalle
+        ));
+    }
+
+    /**
+     * Acceso denegado por @PreAuthorize. SIN este manejador lo atrapaba el
+     * catch-all de abajo y un 403 legítimo llegaba al cliente como 500.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> denegado(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+            "timestamp", Instant.now().toString(),
+            "status", 403,
+            "message", "No tienes permiso para esta operación."
+        ));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> noAutenticado(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+            "timestamp", Instant.now().toString(),
+            "status", 401,
+            "message", "Sesión inválida o expirada."
         ));
     }
 

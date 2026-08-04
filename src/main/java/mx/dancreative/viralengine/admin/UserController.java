@@ -5,6 +5,7 @@ import mx.dancreative.viralengine.wallet.WalletService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -96,13 +97,27 @@ public class UserController {
 
     // ---------- Configuración de bonos (Settings → Pagos) ----------
 
+    /**
+     * El tabulador lo lee cualquier usuario autenticado: el editor tiene derecho
+     * a saber cómo se le paga (es lo que promete el TyC) y su billetera lo muestra.
+     * A quien no es admin se le oculta lo que no le corresponde: precio_por_video
+     * es lo que se le cobra al cliente, o sea el margen del estudio.
+     */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/config")
     public Map<String, Object> config() {
-        Map<String, Object> cfg = jdbc.queryForMap("SELECT * FROM app_config WHERE id = 1");
+        Map<String, Object> cfg = new java.util.LinkedHashMap<>(
+            jdbc.queryForMap("SELECT * FROM app_config WHERE id = 1"));
         cfg.put("tiers", jdbc.queryForList("""
             SELECT t.id, tt.codigo AS tipo, t.vistas_min, t.bono
               FROM bonus_tier t JOIN cat_tier_type tt ON tt.id = t.tier_type_id
              ORDER BY tt.codigo, t.vistas_min"""));
+
+        boolean esAdmin = SecurityContextHolder.getContext().getAuthentication()
+            .getAuthorities().stream()
+            .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!esAdmin) cfg.remove("precio_por_video");
+
         return cfg;
     }
 
